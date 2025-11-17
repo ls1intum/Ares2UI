@@ -1,4 +1,4 @@
-## Ares UI
+## Ares 2 UI
 
 A JavaFX desktop application for generating test cases in precompiled mode from Ares 2. The application offers both a graphical user interface and a command line interface, allowing users to enter a YAML policy and a target project, which will automatically generate the corresponding JUnit tests in each project.
 
