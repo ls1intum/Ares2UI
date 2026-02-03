@@ -16,6 +16,7 @@ import de.tum.cit.ase.aresUI.policy.rules.TimeoutRule;
 import io.reactivex.rxjava3.core.Observable;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -24,6 +25,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.pdfsam.rxjavafx.observables.JavaFxObservable;
@@ -148,9 +150,14 @@ public class PolicyDialogView {
         bottomButtons.setPadding(new Insets(0, 12, 12, 12));
         outerRoot.setBottom(bottomButtons);
 
-        Scene scene = new Scene(outerRoot, 1100, 900);
-        stage.setMinWidth(780);
-        stage.setMinHeight(620);
+        Screen screen = Screen.getPrimary();
+        Rectangle2D bounds = screen.getVisualBounds();
+        double width = bounds.getWidth() * 0.5;
+        double height = bounds.getHeight() * 0.7;
+
+        Scene scene = new Scene(outerRoot, width, height);
+        stage.setMinWidth(width * 0.6);
+        stage.setMinHeight(height * 0.5);
         stage.setScene(scene);
     }
 
