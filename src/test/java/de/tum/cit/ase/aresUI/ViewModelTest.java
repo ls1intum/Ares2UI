@@ -1,6 +1,7 @@
 package de.tum.cit.ase.aresUI;
 
 import de.tum.cit.ase.aresUI.generation.AresTestGenerator;
+import de.tum.cit.ase.aresUI.policy.yaml.PolicyYamlCreator;
 import de.tum.cit.ase.aresUI.testing.DirectExecutorService;
 import de.tum.cit.ase.aresUI.testing.FxTestSupport;
 import io.reactivex.rxjava3.subjects.PublishSubject;
@@ -48,16 +49,19 @@ class ViewModelTest {
         AresTestGenerator generator = mock(AresTestGenerator.class);
         DirectExecutorService executorService = new DirectExecutorService();
         FxScheduler scheduler = Runnable::run;
+        PolicyYamlCreator policyYamlCreator = mock(PolicyYamlCreator.class);
 
         PublishSubject<File> directorySubject = PublishSubject.create();
         PublishSubject<File> policySubject = PublishSubject.create();
         PublishSubject<ActionEvent> createSubject = PublishSubject.create();
         PublishSubject<ActionEvent> resetSubject = PublishSubject.create();
+        PublishSubject<ActionEvent> createPolicySubject = PublishSubject.create();
 
         when(view.projectDirectoryObservable()).thenReturn(directorySubject);
         when(view.policyFileObservable()).thenReturn(policySubject);
         when(view.createFilesObservable()).thenReturn(createSubject);
         when(view.resetObservable()).thenReturn(resetSubject);
+        when(view.createPolicyObservable()).thenReturn(createPolicySubject);
 
         List<String> errors = Collections.synchronizedList(new ArrayList<>());
         doAnswer(invocation -> {
@@ -65,7 +69,7 @@ class ViewModelTest {
             return null;
         }).when(view).showError(anyString());
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler, policyYamlCreator);
         viewModel.initialize();
 
         File projectSelection = new File("projectDir");
@@ -84,8 +88,9 @@ class ViewModelTest {
         policySubject.onError(new RuntimeException("policy error"));
         createSubject.onError(new RuntimeException("create error"));
         resetSubject.onError(new RuntimeException("reset error"));
+        createPolicySubject.onError(new RuntimeException("create policy error"));
 
-        assertEquals(4, errors.size());
+        assertEquals(5, errors.size());
     }
 
     /**
@@ -101,16 +106,19 @@ class ViewModelTest {
         AresTestGenerator generator = mock(AresTestGenerator.class);
         DirectExecutorService executorService = new DirectExecutorService();
         FxScheduler scheduler = Runnable::run;
+        PolicyYamlCreator policyYamlCreator = mock(PolicyYamlCreator.class);
 
         PublishSubject<File> directorySubject = PublishSubject.create();
         PublishSubject<File> policySubject = PublishSubject.create();
         PublishSubject<ActionEvent> createSubject = PublishSubject.create();
         PublishSubject<ActionEvent> resetSubject = PublishSubject.create();
+        PublishSubject<ActionEvent> createPolicySubject = PublishSubject.create();
 
         when(view.projectDirectoryObservable()).thenReturn(directorySubject);
         when(view.policyFileObservable()).thenReturn(policySubject);
         when(view.createFilesObservable()).thenReturn(createSubject);
         when(view.resetObservable()).thenReturn(resetSubject);
+        when(view.createPolicyObservable()).thenReturn(createPolicySubject);
 
         List<String> statusMessages = Collections.synchronizedList(new ArrayList<>());
         doAnswer(invocation -> {
@@ -124,7 +132,7 @@ class ViewModelTest {
             return null;
         }).when(generator).generateTests(any(), any(), any());
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler, policyYamlCreator);
         viewModel.initialize();
 
         Path projectPath = Path.of("project").toAbsolutePath();
@@ -155,18 +163,21 @@ class ViewModelTest {
         AresTestGenerator generator = mock(AresTestGenerator.class);
         DirectExecutorService executorService = new DirectExecutorService();
         FxScheduler scheduler = Runnable::run;
+        PolicyYamlCreator policyYamlCreator = mock(PolicyYamlCreator.class);
 
         PublishSubject<File> directorySubject = PublishSubject.create();
         PublishSubject<File> policySubject = PublishSubject.create();
         PublishSubject<ActionEvent> createSubject = PublishSubject.create();
         PublishSubject<ActionEvent> resetSubject = PublishSubject.create();
+        PublishSubject<ActionEvent> createPolicySubject = PublishSubject.create();
 
         when(view.projectDirectoryObservable()).thenReturn(directorySubject);
         when(view.policyFileObservable()).thenReturn(policySubject);
         when(view.createFilesObservable()).thenReturn(createSubject);
         when(view.resetObservable()).thenReturn(resetSubject);
+        when(view.createPolicyObservable()).thenReturn(createPolicySubject);
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler, policyYamlCreator);
         viewModel.initialize();
 
         viewModel.executeCreateFiles();
@@ -188,16 +199,19 @@ class ViewModelTest {
         AresTestGenerator generator = mock(AresTestGenerator.class);
         DirectExecutorService executorService = new DirectExecutorService();
         FxScheduler scheduler = Runnable::run;
+        PolicyYamlCreator policyYamlCreator = mock(PolicyYamlCreator.class);
 
         PublishSubject<File> directorySubject = PublishSubject.create();
         PublishSubject<File> policySubject = PublishSubject.create();
         PublishSubject<ActionEvent> createSubject = PublishSubject.create();
         PublishSubject<ActionEvent> resetSubject = PublishSubject.create();
+        PublishSubject<ActionEvent> createPolicySubject = PublishSubject.create();
 
         when(view.projectDirectoryObservable()).thenReturn(directorySubject);
         when(view.policyFileObservable()).thenReturn(policySubject);
         when(view.createFilesObservable()).thenReturn(createSubject);
         when(view.resetObservable()).thenReturn(resetSubject);
+        when(view.createPolicyObservable()).thenReturn(createPolicySubject);
 
         AtomicBoolean invoked = new AtomicBoolean(false);
         doAnswer(invocation -> {
@@ -205,7 +219,7 @@ class ViewModelTest {
             throw new IOException("boom");
         }).when(generator).generateTests(any(), any(), any());
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler, policyYamlCreator);
         viewModel.initialize();
 
         Path projectPath = Path.of("project").toAbsolutePath();
@@ -232,18 +246,21 @@ class ViewModelTest {
         AresTestGenerator generator = mock(AresTestGenerator.class);
         DirectExecutorService executorService = new DirectExecutorService();
         FxScheduler scheduler = Runnable::run;
+        PolicyYamlCreator policyYamlCreator = mock(PolicyYamlCreator.class);
 
         PublishSubject<File> directorySubject = PublishSubject.create();
         PublishSubject<File> policySubject = PublishSubject.create();
         PublishSubject<ActionEvent> createSubject = PublishSubject.create();
         PublishSubject<ActionEvent> resetSubject = PublishSubject.create();
+        PublishSubject<ActionEvent> createPolicySubject = PublishSubject.create();
 
         when(view.projectDirectoryObservable()).thenReturn(directorySubject);
         when(view.policyFileObservable()).thenReturn(policySubject);
         when(view.createFilesObservable()).thenReturn(createSubject);
         when(view.resetObservable()).thenReturn(resetSubject);
+        when(view.createPolicyObservable()).thenReturn(createPolicySubject);
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executorService, scheduler, policyYamlCreator);
         viewModel.initialize();
 
         model.setProjectDirectory("dir");
@@ -253,6 +270,7 @@ class ViewModelTest {
         assertNull(model.getProjectDirectory());
         assertNull(model.getPolicyFile());
         verify(view).resetFields();
+        verify(view).setPolicyActionIsEdit(false);
     }
 
     /**
@@ -269,7 +287,7 @@ class ViewModelTest {
         ExecutorService executor = mock(ExecutorService.class);
         FxScheduler scheduler = Runnable::run;
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executor, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executor, scheduler, mock(PolicyYamlCreator.class));
         viewModel.stop();
 
         verify(executor).shutdownNow();
@@ -289,7 +307,7 @@ class ViewModelTest {
         ExecutorService executor = mock(ExecutorService.class);
         FxScheduler scheduler = Runnable::run;
 
-        ViewModel viewModel = new ViewModel(view, model, generator, executor, scheduler);
+        ViewModel viewModel = new ViewModel(view, model, generator, executor, scheduler, mock(PolicyYamlCreator.class));
 
         assertFalse(viewModel.canCreateFiles());
         model.setProjectDirectory("dir");
@@ -308,7 +326,7 @@ class ViewModelTest {
     void formatThrowableHandlesNullValues() throws Exception {
         View view = mock(View.class);
         ViewModel viewModel = new ViewModel(view, new Model(), mock(AresTestGenerator.class),
-                new DirectExecutorService(), Runnable::run);
+                new DirectExecutorService(), Runnable::run, mock(PolicyYamlCreator.class));
 
         var method = ViewModel.class.getDeclaredMethod("formatThrowable", Throwable.class);
         method.setAccessible(true);
@@ -333,11 +351,12 @@ class ViewModelTest {
         when(view.policyFileObservable()).thenReturn(PublishSubject.create());
         when(view.createFilesObservable()).thenReturn(PublishSubject.create());
         when(view.resetObservable()).thenReturn(PublishSubject.create());
+        when(view.createPolicyObservable()).thenReturn(PublishSubject.create());
         when(view.getGridPane()).thenReturn(new GridPane());
 
         ExecutorService executor = mock(ExecutorService.class);
         ViewModel viewModel = new ViewModel(view, new Model(), mock(AresTestGenerator.class),
-                executor, Runnable::run);
+                executor, Runnable::run, mock(PolicyYamlCreator.class));
 
         FxTestSupport.runOnFx(() -> {
             try {

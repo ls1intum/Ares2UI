@@ -2,9 +2,7 @@ package de.tum.cit.ase.aresUI;
 
 import de.tum.cit.ase.aresUI.testing.FxTestSupport;
 import io.reactivex.rxjava3.disposables.Disposable;
-import javafx.event.ActionEvent;
 import javafx.scene.Scene;
-import javafx.scene.control.TextArea;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assumptions;
@@ -152,6 +150,7 @@ class ViewTest {
     private static final class TestSelectionProvider implements SelectionProvider {
         private final Queue<Optional<File>> directories = new ArrayDeque<>();
         private final Queue<Optional<File>> policies = new ArrayDeque<>();
+        private final Queue<Optional<File>> savePolicies = new ArrayDeque<>();
 
         void enqueueDirectory(File file) {
             directories.add(Optional.of(file));
@@ -159,6 +158,10 @@ class ViewTest {
 
         void enqueuePolicy(File file) {
             policies.add(Optional.of(file));
+        }
+
+        void enqueueSavePolicy(File file) {
+            savePolicies.add(Optional.of(file));
         }
 
         @Override
@@ -169,6 +172,11 @@ class ViewTest {
         @Override
         public Optional<File> selectPolicyFile(javafx.stage.Window owner) {
             return policies.isEmpty() ? Optional.empty() : policies.remove();
+        }
+
+        @Override
+        public Optional<File> selectSavePolicyFile(javafx.stage.Window owner, String suggestedFileName) {
+            return savePolicies.isEmpty() ? Optional.empty() : savePolicies.remove();
         }
     }
 }

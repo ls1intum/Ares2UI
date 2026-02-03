@@ -2,6 +2,11 @@ package de.tum.cit.ase.aresUI;
 
 import de.tum.cit.ase.aresUI.generation.AresTestGenerator;
 import de.tum.cit.ase.aresUI.generation.DefaultSecurityPolicyGeneratorFactory;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogView;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewModel;
+import de.tum.cit.ase.aresUI.policy.yaml.PolicyYamlCreator;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogModel;
+import de.tum.cit.ase.aresUI.policy.yaml.PolicyYamlParser;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -9,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +56,8 @@ public class ViewModel extends Application {
      * Schedules UI updates on the JavaFX thread.
      */
     private final FxScheduler fxScheduler;
+    private final PolicyYamlCreator policyYamlCreator;
+
 
     /**
      * Creates the production controller using real UI components and generator.
@@ -66,7 +74,8 @@ public class ViewModel extends Application {
                     thread.setDaemon(true);
                     return thread;
                 }),
-                new PlatformFxScheduler());
+                new PlatformFxScheduler(),
+                new PolicyYamlCreator());
     }
 
     /**
@@ -80,12 +89,13 @@ public class ViewModel extends Application {
      * @since 0.0.1
      * @author Markus Paulsen
      */
-    ViewModel(View view, Model model, AresTestGenerator generator, ExecutorService executorService, FxScheduler fxScheduler) {
+    ViewModel(View view, Model model, AresTestGenerator generator, ExecutorService executorService, FxScheduler fxScheduler, PolicyYamlCreator policyYamlCreator) {
         this.view = Objects.requireNonNull(view, "view");
         this.model = Objects.requireNonNull(model, "model");
         this.generator = Objects.requireNonNull(generator, "generator");
         this.executorService = Objects.requireNonNull(executorService, "executorService");
         this.fxScheduler = Objects.requireNonNull(fxScheduler, "fxScheduler");
+        this.policyYamlCreator = Objects.requireNonNull(policyYamlCreator, "policyYamlCreator");
     }
 
     /**
@@ -111,6 +121,10 @@ public class ViewModel extends Application {
 
         disposables.add(view.resetObservable()
                 .subscribe(this::onReset, this::onResetError)
+        );
+
+        disposables.add(view.createPolicyObservable()
+                .subscribe(__ -> onOpenCreateOrEditPolicyDialog(), this::onCreatePolicyError)
         );
     }
 
@@ -151,6 +165,9 @@ public class ViewModel extends Application {
         fxScheduler.runLater(() -> {
             model.setPolicyFile(file);
             view.updatePolicyFile(file);
+
+            // Only flip the button label; the user opens the dialog explicitly.
+            view.setPolicyActionIsEdit(file != null && !file.isBlank());
         });
     }
 
@@ -206,6 +223,51 @@ public class ViewModel extends Application {
     }
 
     /**
+     * Opens the policy dialog to create a new policy or edit the currently selected policy.
+     *
+     * <p>This method creates a JavaFX dialog view and its corresponding view model, optionally preloads
+     * the dialog from the currently selected policy file, and then shows the dialog. All UI work is
+     * scheduled on the JavaFX thread.
+     *
+     * @throws IllegalStateException if JavaFX operations are invoked when the toolkit is not initialized
+     */
+    private void onOpenCreateOrEditPolicyDialog() {
+        fxScheduler.runLater(() -> {
+            PolicyDialogView dialogView = new PolicyDialogView(view.getWindow());
+
+            // If a valid policy file is selected, preload it (edit mode).
+            PolicyDialogModel imported = tryParseSelectedPolicyForEditing();
+            if (imported != null) {
+                dialogView.loadFromModel(imported);
+            }
+
+            PolicyDialogViewModel dialogVm = new PolicyDialogViewModel(
+                    dialogView,
+                    new DefaultSelectionProvider(),
+                    view.getWindow(),
+                    (policyModel, outputPath) -> executorService.submit(() -> {
+                        try {
+                            Path policyPath = policyYamlCreator.createPolicyYamlAt(outputPath, policyModel);
+
+                            fxScheduler.runLater(() -> {
+                                model.setPolicyFile(policyPath.toString());
+                                view.updatePolicyFile(policyPath.toString());
+                                view.setPolicyActionIsEdit(true);
+                                view.showStatus((imported != null ? "Policy saved successfully at " : "Policy created successfully at ") + policyPath);
+                            });
+                        } catch (Exception ex) {
+                            fxScheduler.runLater(() ->
+                                    view.showError("Error saving policy: " + formatThrowable(ex)));
+                        }
+                    }),
+                    __ -> false
+            );
+
+            dialogVm.show();
+        });
+    }
+
+    /**
      * Displays observable errors emitted by the create button subscription.
      *
      * @param throwable root cause
@@ -228,6 +290,7 @@ public class ViewModel extends Application {
             model.setProjectDirectory(null);
             model.setPolicyFile(null);
             view.resetFields();
+            view.setPolicyActionIsEdit(false);
         });
     }
 
@@ -241,6 +304,16 @@ public class ViewModel extends Application {
     private void onResetError(Throwable throwable) {
         fxScheduler.runLater(() -> view.showError("Error resetting fields: " + throwable.getMessage()));
     }
+
+    /**
+     * Reports errors that occur while reacting to the "create/edit policy" UI action.
+     *
+     * @param throwable the error emitted by the create-policy observable
+     */
+    private void onCreatePolicyError(Throwable throwable) {
+        fxScheduler.runLater(() -> view.showError("Error opening policy dialog: " + throwable.getMessage()));
+    }
+
 
     /**
      * Determines whether generation can start based on current selections.
@@ -264,7 +337,7 @@ public class ViewModel extends Application {
     @Override
     public void start(Stage primaryStage) {
         initialize();
-        Scene scene = new Scene(view.getGridPane(), 400, 300);
+        Scene scene = new Scene(view.getGridPane(), 600, 500);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Ares UI");
         primaryStage.show();
@@ -306,5 +379,39 @@ public class ViewModel extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+
+    /**
+     * Attempts to parse the currently selected policy file into a dialog model for editing.
+     *
+     * <p>The method returns {@code null} when no policy file is selected, when the path is invalid or does not
+     * exist, or when parsing fails.
+     *
+     * @return the parsed {@link PolicyDialogModel} to preload the dialog, or {@code null} if parsing is not possible
+     */
+    private PolicyDialogModel tryParseSelectedPolicyForEditing() {
+        String selected = model.getPolicyFile();
+        if (selected == null || selected.isBlank()) {
+            return null;
+        }
+
+        Path yamlPath;
+        try {
+            yamlPath = Path.of(selected);
+        } catch (Exception e) {
+            return null;
+        }
+
+        if (!Files.exists(yamlPath)) {
+            return null;
+        }
+
+        try {
+            return PolicyYamlParser.parse(yamlPath);
+        } catch (Exception parseEx) {
+            // UI hint: allow selecting arbitrary YAMLs, but warn if not an Ares policy.
+            view.showError("This doesn't look like a valid Ares security policy YAML. Please select the correct policy file.\nReason: " + parseEx.getMessage());
+            return null;
+        }
     }
 }

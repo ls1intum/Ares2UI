@@ -39,5 +39,18 @@ public interface SelectionProvider {
      * @author Markus Paulsen
      */
     Optional<File> selectPolicyFile(Window owner);
+
+    /**
+     * Opens a save-file dialog so the user can choose where to store a security policy YAML file.
+     *
+     * <p>The dialog is configured with a title and a suggested initial file name, and it restricts the
+     * selectable file types to YAML extensions.
+     *
+     * @param owner the owner window used as the parent for the chooser dialog
+     * @param suggestedFileName the initially suggested file name shown in the dialog
+     * @return an {@link Optional} describing the selected file, or {@link Optional#empty()} if the user cancels
+     * @throws NullPointerException if {@code owner} is {@code null}
+     */
+    Optional<File> selectSavePolicyFile(Window owner, String suggestedFileName);
 }
 

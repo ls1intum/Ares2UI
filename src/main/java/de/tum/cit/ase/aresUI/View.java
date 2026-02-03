@@ -2,12 +2,11 @@ package de.tum.cit.ase.aresUI;
 
 import io.reactivex.rxjava3.core.Observable;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.*;
 import javafx.stage.Window;
 import org.pdfsam.rxjavafx.observables.JavaFxObservable;
 
@@ -58,6 +57,10 @@ public class View {
      */
     private final Button resetButton;
     /**
+     * Button that triggers policy creation.
+     */
+    private final Button createPolicyButton;
+    /**
      * Multi-line text area used for status and error reporting.
      */
     private final TextArea statusTextArea;
@@ -65,6 +68,9 @@ public class View {
      * Strategy for selecting directories and files.
      */
     private final SelectionProvider selectionProvider;
+
+    private static final String CREATE_POLICY_LABEL = "Create Policy";
+    private static final String EDIT_POLICY_LABEL = "Edit Policy";
 
     /**
      * Creates the view with the production {@link DefaultSelectionProvider}.
@@ -90,6 +96,7 @@ public class View {
         this.projectButton = new Button("Choose Folder");
         this.policyTextField = new TextField();
         this.policyButton = new Button("Choose File");
+        this.createPolicyButton = new Button(CREATE_POLICY_LABEL);
         this.statusTextArea = new TextArea();
         this.createFilesButton = new Button("Create Files");
         this.resetButton = new Button("Reset");
@@ -213,6 +220,11 @@ public class View {
      * @author Markus Paulsen
      */
     private void initializeUI() {
+        // Add consistent outer padding + gaps so controls don't touch the window edges.
+        gridPane.setPadding(new Insets(12));
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
         Label projectLabel = new Label("Project Folder:");
         projectTextField.setEditable(false);
         gridPane.add(projectLabel, 0, 0);
@@ -223,7 +235,10 @@ public class View {
         policyTextField.setEditable(false);
         gridPane.add(policyLabel, 0, 2);
         gridPane.add(policyTextField, 1, 2);
-        gridPane.add(policyButton, 2, 2);
+
+        HBox policyButtons = new HBox(8, policyButton, createPolicyButton);
+        policyButtons.setAlignment(Pos.CENTER_LEFT);
+        gridPane.add(policyButtons, 2, 2);
 
         gridPane.add(createFilesButton, 1, 3);
         gridPane.add(resetButton, 2, 3);
@@ -234,6 +249,9 @@ public class View {
         statusTextArea.setWrapText(true);
         statusTextArea.setPrefRowCount(5);
         gridPane.add(statusTextArea, 1, 4, 2, 4);
+
+        // Add a bit of breathing room around the status field.
+        GridPane.setMargin(statusTextArea, new Insets(6, 0, 0, 0));
 
         GridPane.setHgrow(projectTextField, Priority.ALWAYS);
         GridPane.setHgrow(policyTextField, Priority.ALWAYS);
@@ -271,7 +289,7 @@ public class View {
      */
     public Observable<File> projectDirectoryObservable() {
         return JavaFxObservable.actionEventsOf(projectButton)
-                .map(event -> selectionProvider.selectProjectDirectory(getWindow()))
+                .map(__ -> selectionProvider.selectProjectDirectory(getWindow()))
                 .filter(Optional::isPresent)
                 .map(Optional::get);
     }
@@ -285,7 +303,7 @@ public class View {
      */
     public Observable<File> policyFileObservable() {
         return JavaFxObservable.actionEventsOf(policyButton)
-                .map(event -> selectionProvider.selectPolicyFile(getWindow()))
+                .map(__ -> selectionProvider.selectPolicyFile(getWindow()))
                 .filter(Optional::isPresent)
                 .map(Optional::get);
     }
@@ -299,6 +317,10 @@ public class View {
      */
     public Observable<ActionEvent> createFilesObservable() {
         return JavaFxObservable.actionEventsOf(createFilesButton);
+    }
+
+    public Observable<ActionEvent> createPolicyObservable() {
+        return JavaFxObservable.actionEventsOf(createPolicyButton);
     }
 
     /**
@@ -378,5 +400,14 @@ public class View {
      */
     private void appendMessage(String prefix, String message) {
         statusTextArea.appendText(String.format("[%s] %s%n", prefix, message));
+    }
+
+    /**
+     * Switches the policy action button label.
+     *
+     * <p>If a policy file is selected, the main action becomes "Edit Policy".
+     */
+    public void setPolicyActionIsEdit(boolean isEdit) {
+        createPolicyButton.setText(isEdit ? EDIT_POLICY_LABEL : CREATE_POLICY_LABEL);
     }
 }
