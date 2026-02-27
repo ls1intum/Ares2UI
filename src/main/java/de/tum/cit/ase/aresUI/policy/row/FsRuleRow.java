@@ -13,6 +13,7 @@ public final class FsRuleRow {
     public final Button browse;
     public final CheckBox read;
     public final CheckBox overwrite;
+    public final CheckBox create;
     public final CheckBox execute;
     public final CheckBox delete;
     public final Button remove;
@@ -25,6 +26,7 @@ public final class FsRuleRow {
      * @param browse browse button
      * @param read read checkbox
      * @param overwrite overwrite checkbox
+     * @param create create checkbox
      * @param execute execute checkbox
      * @param delete delete checkbox
      * @param remove remove button
@@ -34,6 +36,7 @@ public final class FsRuleRow {
                      Button browse,
                      CheckBox read,
                      CheckBox overwrite,
+                     CheckBox create,
                      CheckBox execute,
                      CheckBox delete,
                      Button remove,
@@ -42,6 +45,7 @@ public final class FsRuleRow {
         this.browse = browse;
         this.read = read;
         this.overwrite = overwrite;
+        this.create = create;
         this.execute = execute;
         this.delete = delete;
         this.remove = remove;

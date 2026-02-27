@@ -81,6 +81,7 @@ public class PolicyYamlCreator {
             sb.append("      - onThisPathAndAllPathsBelow: \"").append(escape(rule.getPathAndBelow())).append("\"\n");
             sb.append("        readAllFiles: ").append(rule.isReadAllFiles()).append("\n");
             sb.append("        overwriteAllFiles: ").append(rule.isOverwriteAllFiles()).append("\n");
+            sb.append("        createAllFiles: ").append(rule.isCreateAllFiles()).append("\n");
             sb.append("        executeAllFiles: ").append(rule.isExecuteAllFiles()).append("\n");
             sb.append("        deleteAllFiles: ").append(rule.isDeleteAllFiles()).append("\n");
         }

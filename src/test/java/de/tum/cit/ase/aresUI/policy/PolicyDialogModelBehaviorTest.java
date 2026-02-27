@@ -22,7 +22,7 @@ class PolicyDialogModelBehaviorTest {
                 " Main ",
                 List.of("de.example.ExampleTest"),
                 List.of(
-                        new FileSystemRule("  /tmp ", true, false, false, false)
+                        new FileSystemRule("  /tmp ", true, false, false, false, false)
                 ),
                 List.of(new NetworkConnectionRule("  example.com ", 443, true, false, true)),
                 List.of(new CommandExecutionRule("  echo ", List.of(" a ", "", "b"))),

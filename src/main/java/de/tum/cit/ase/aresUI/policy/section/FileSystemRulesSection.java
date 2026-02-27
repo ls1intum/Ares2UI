@@ -76,6 +76,7 @@ public final class FileSystemRulesSection {
             row.path.setText(r.getPathAndBelow());
             row.read.setSelected(r.isReadAllFiles());
             row.overwrite.setSelected(r.isOverwriteAllFiles());
+            row.create.setSelected(r.isCreateAllFiles());
             row.execute.setSelected(r.isExecuteAllFiles());
             row.delete.setSelected(r.isDeleteAllFiles());
         }
@@ -93,6 +94,7 @@ public final class FileSystemRulesSection {
                         r.path.getText(),
                         r.read.isSelected(),
                         r.overwrite.isSelected(),
+                        r.create.isSelected(),
                         r.execute.isSelected(),
                         r.delete.isSelected()
                 ))
@@ -126,6 +128,7 @@ public final class FileSystemRulesSection {
 
         CheckBox read = new CheckBox();
         CheckBox overwrite = new CheckBox();
+        CheckBox create = new CheckBox();
         CheckBox execute = new CheckBox();
         CheckBox delete = new CheckBox();
 
@@ -139,11 +142,12 @@ public final class FileSystemRulesSection {
         row.add(browse, 1, 0);
         row.add(read, 2, 0);
         row.add(overwrite, 3, 0);
-        row.add(execute, 4, 0);
-        row.add(delete, 5, 0);
-        row.add(remove, 6, 0);
+        row.add(create, 4, 0);
+        row.add(execute, 5, 0);
+        row.add(delete, 6, 0);
+        row.add(remove, 7, 0);
 
-        FsRuleRow rr = new FsRuleRow(path, browse, read, overwrite, execute, delete, remove, row);
+        FsRuleRow rr = new FsRuleRow(path, browse, read, overwrite, create, execute, delete, remove, row);
         rows.add(rr);
         container.getChildren().add(row);
 
@@ -266,6 +270,7 @@ public final class FileSystemRulesSection {
 
             newRow.read.setSelected(targetRow.read.isSelected());
             newRow.overwrite.setSelected(targetRow.overwrite.isSelected());
+            newRow.create.setSelected(targetRow.create.isSelected());
             newRow.execute.setSelected(targetRow.execute.isSelected());
             newRow.delete.setSelected(targetRow.delete.isSelected());
         }
@@ -313,11 +318,12 @@ public final class FileSystemRulesSection {
 
         ColumnConstraints c1 = new ColumnConstraints(70);
         ColumnConstraints c2 = new ColumnConstraints(100);
-        ColumnConstraints c3 = new ColumnConstraints(80);
-        ColumnConstraints c4 = new ColumnConstraints(70);
-        ColumnConstraints c5 = new ColumnConstraints(34);
+        ColumnConstraints c3 = new ColumnConstraints(70);
+        ColumnConstraints c4 = new ColumnConstraints(80);
+        ColumnConstraints c5 = new ColumnConstraints(70);
+        ColumnConstraints c6 = new ColumnConstraints(34);
 
-        return List.of(c0, cBrowse, c1, c2, c3, c4, c5);
+        return List.of(c0, cBrowse, c1, c2, c3, c4, c5, c6);
     }
 
     /**
@@ -335,9 +341,10 @@ public final class FileSystemRulesSection {
         header.add(new Label(""), 1, 0);
         header.add(UiSupport.boldLabel("Read"), 2, 0);
         header.add(UiSupport.boldLabel("Overwrite"), 3, 0);
-        header.add(UiSupport.boldLabel("Execute"), 4, 0);
-        header.add(UiSupport.boldLabel("Delete"), 5, 0);
-        header.add(new Label(""), 6, 0);
+        header.add(UiSupport.boldLabel("Create"), 4, 0);
+        header.add(UiSupport.boldLabel("Execute"), 5, 0);
+        header.add(UiSupport.boldLabel("Delete"), 6, 0);
+        header.add(new Label(""), 7, 0);
 
         return header;
     }

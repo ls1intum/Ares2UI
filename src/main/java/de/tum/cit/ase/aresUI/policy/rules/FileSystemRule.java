@@ -1,7 +1,7 @@
 package de.tum.cit.ase.aresUI.policy.rules;
 
 /**
- * Represents a file system rule with permissions for reading, writing, executing,
+ * Represents a file system rule with permissions for reading, writing, creating, executing,
  * and deleting files within a specified directory path.
  */
 public class FileSystemRule {
@@ -9,6 +9,7 @@ public class FileSystemRule {
     private final String pathAndBelow;
     private final boolean readAllFiles;
     private final boolean overwriteAllFiles;
+    private final boolean createAllFiles;
     private final boolean executeAllFiles;
     private final boolean deleteAllFiles;
 
@@ -18,6 +19,7 @@ public class FileSystemRule {
      * @param pathAndBelow base path; the rule applies to this path and all paths below
      * @param readAllFiles whether reading files is permitted
      * @param overwriteAllFiles whether overwriting files is permitted
+     * @param createAllFiles whether creating files is permitted
      * @param executeAllFiles whether executing files is permitted
      * @param deleteAllFiles whether deleting files is permitted
      * @throws IllegalArgumentException if {@code pathAndBelow} is {@code null} or blank
@@ -25,12 +27,14 @@ public class FileSystemRule {
     public FileSystemRule(String pathAndBelow,
                           boolean readAllFiles,
                           boolean overwriteAllFiles,
+                          boolean createAllFiles,
                           boolean executeAllFiles,
                           boolean deleteAllFiles) {
 
         this.pathAndBelow = requireNonBlank(pathAndBelow);
         this.readAllFiles = readAllFiles;
         this.overwriteAllFiles = overwriteAllFiles;
+        this.createAllFiles = createAllFiles;
         this.executeAllFiles = executeAllFiles;
         this.deleteAllFiles = deleteAllFiles;
     }
@@ -74,6 +78,15 @@ public class FileSystemRule {
      */
     public boolean isOverwriteAllFiles() {
         return overwriteAllFiles;
+    }
+
+    /**
+     * Indicates whether creating files is permitted.
+     *
+     * @return {@code true} if permitted
+     */
+    public boolean isCreateAllFiles() {
+        return createAllFiles;
     }
 
     /**

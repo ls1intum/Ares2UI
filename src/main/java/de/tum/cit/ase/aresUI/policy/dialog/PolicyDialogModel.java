@@ -133,6 +133,7 @@ public class PolicyDialogModel {
                         r.getPathAndBelow().trim(),
                         r.isReadAllFiles(),
                         r.isOverwriteAllFiles(),
+                        r.isCreateAllFiles(),
                         r.isExecuteAllFiles(),
                         r.isDeleteAllFiles()
                 ))

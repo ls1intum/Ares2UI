@@ -121,9 +121,10 @@ public final class PolicyYamlParser {
             String path = requireString(item, "onThisPathAndAllPathsBelow");
             boolean read = getBool(item, "readAllFiles");
             boolean overwrite = getBool(item, "overwriteAllFiles");
+            boolean create = getBool(item, "createAllFiles");
             boolean execute = getBool(item, "executeAllFiles");
             boolean delete = getBool(item, "deleteAllFiles");
-            rules.add(new FileSystemRule(path, read, overwrite, execute, delete));
+            rules.add(new FileSystemRule(path, read, overwrite, create, execute, delete));
         }
         return rules;
     }

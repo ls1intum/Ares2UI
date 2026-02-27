@@ -27,7 +27,7 @@ class PolicyYamlRoundTripTest {
                 "de.example",
                 "Main",
                 List.of("de.example.ExampleTest", "de.example.OtherTest"),
-                List.of(new FileSystemRule("/tmp", true, false, true, false)),
+                List.of(new FileSystemRule("/tmp", true, false, true, true, false)),
                 List.of(new NetworkConnectionRule("example.com", 443, true, true, false)),
                 List.of(new CommandExecutionRule("echo", List.of("a", "b"))),
                 List.of(new ThreadCreationRule(2, "java.lang.Thread")),
