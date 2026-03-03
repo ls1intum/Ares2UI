@@ -2,7 +2,8 @@ package de.tum.cit.ase.aresUI;
 
 import de.tum.cit.ase.aresUI.generation.AresTestGenerator;
 import de.tum.cit.ase.aresUI.generation.DefaultSecurityPolicyGeneratorFactory;
-import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogView;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewContract;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewImpl;
 import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewModel;
 import de.tum.cit.ase.aresUI.policy.yaml.PolicyYamlCreator;
 import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogModel;
@@ -233,7 +234,7 @@ public class ViewModel extends Application {
      */
     private void onOpenCreateOrEditPolicyDialog() {
         fxScheduler.runLater(() -> {
-            PolicyDialogView dialogView = new PolicyDialogView(view.getWindow());
+            PolicyDialogViewContract dialogView = new PolicyDialogViewImpl(view.getWindow());
 
             // If a valid policy file is selected, preload it (edit mode).
             PolicyDialogModel imported = tryParseSelectedPolicyForEditing();

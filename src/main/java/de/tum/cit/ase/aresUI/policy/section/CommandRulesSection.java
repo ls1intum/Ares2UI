@@ -1,8 +1,8 @@
 package de.tum.cit.ase.aresUI.policy.section;
 
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
 import de.tum.cit.ase.aresUI.policy.rules.CommandExecutionRule;
 import de.tum.cit.ase.aresUI.policy.UiSupport;
-import de.tum.cit.ase.aresUI.policy.row.CommandRuleRow;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  */
 public final class CommandRulesSection {
 
-    private final Button addButton = new Button("Add rule");
+    private final Button addButton = new Button(PolicyUiConstants.ADD_RULE_LABEL);
     private final VBox container = new VBox(6);
     private final List<CommandRuleRow> rows = new ArrayList<>();
 
@@ -136,7 +136,7 @@ public final class CommandRulesSection {
         c1.setHgrow(Priority.ALWAYS);
         c1.setMinWidth(320);
 
-        ColumnConstraints c2 = new ColumnConstraints(34);
+        ColumnConstraints c2 = new ColumnConstraints(PolicyUiConstants.REMOVE_COLUMN_WIDTH);
 
         return List.of(c0, c1, c2);
     }

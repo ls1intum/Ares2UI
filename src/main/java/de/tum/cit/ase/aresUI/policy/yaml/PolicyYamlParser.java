@@ -225,7 +225,7 @@ public final class PolicyYamlParser {
         List<Map<String, Object>> items = asListOfMaps(node);
         if (items.isEmpty()) return List.of();
 
-        Map<String, Object> first = items.getFirst();
+        Map<String, Object> first = items.get(0);
         int seconds = getInt(first, "timeout", 0);
         if (seconds <= 0) {
             return List.of();
@@ -401,9 +401,9 @@ public final class PolicyYamlParser {
         Object parse(String yaml) {
             List<String> lines = yaml.lines().toList();
             // strip BOM
-            if (!lines.isEmpty() && lines.getFirst().startsWith("\uFEFF")) {
+            if (!lines.isEmpty() && lines.get(0).startsWith("\uFEFF")) {
                 lines = new ArrayList<>(lines);
-                lines.set(0, lines.getFirst().substring(1));
+                lines.set(0, lines.get(0).substring(1));
             }
 
             Index idx = new Index();

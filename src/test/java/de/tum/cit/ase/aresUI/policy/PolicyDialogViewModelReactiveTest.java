@@ -3,7 +3,7 @@ package de.tum.cit.ase.aresUI.policy;
 import de.tum.cit.ase.aresUI.SelectionProvider;
 import de.tum.cit.ase.aresUI.policy.rules.*;
 import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogModel;
-import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogView;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewContract;
 import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewModel;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import javafx.event.ActionEvent;
@@ -23,12 +23,25 @@ import static org.mockito.Mockito.*;
  * Comprehensive tests for {@link PolicyDialogViewModel}.
  *
  * <p>Style mirrors {@code ViewModelTest}: the view is mocked and driven via RxJava {@link PublishSubject}s.
+ * Only {@code collectToModel()} and the observable/control methods are stubbed — no polling getters.
  */
 class PolicyDialogViewModelReactiveTest {
 
+    // ── Helper to build a valid model ───────────────────────────────────
+
+    private static PolicyDialogModel validModel() {
+        return new PolicyDialogModel(
+                "JAVA_USING_MAVEN_WALA_AND_ASPECTJ", "de.example", "Main",
+                List.of("de.example.ExampleTest"),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of()
+        );
+    }
+
+    // ── Tests ───────────────────────────────────────────────────────────
+
     @Test
     void initializeSubscribesAndHandlesObservableErrors() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -37,14 +50,8 @@ class PolicyDialogViewModelReactiveTest {
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> {
-                },
-                p -> false
+                view, selectionProvider, null, (m, p) -> {}, p -> false
         );
-
         vm.initialize();
 
         saveSubject.onError(new RuntimeException("save error"));
@@ -55,7 +62,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void saveSuccessInvokesOnSaveAndCloses() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -63,19 +70,8 @@ class PolicyDialogViewModelReactiveTest {
         when(view.saveObservable()).thenReturn(saveSubject);
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
-        // Valid supervised code inputs
-        when(view.getSelectedConfig()).thenReturn("JAVA_USING_MAVEN_WALA_AND_ASPECTJ");
-        when(view.getRootPackage()).thenReturn("de.example");
-        when(view.getMainClass()).thenReturn("Main");
-        when(view.getTestClassesRaw()).thenReturn("de.example.ExampleTest\n");
-
-        // Valid rules (empty lists are fine)
-        when(view.getFileSystemRules()).thenReturn(List.of());
-        when(view.getNetworkConnectionRules()).thenReturn(List.of());
-        when(view.getCommandExecutionRules()).thenReturn(List.of());
-        when(view.getThreadCreationRules()).thenReturn(List.of());
-        when(view.getPackageImportRules()).thenReturn(List.of());
-        when(view.getTimeoutRules()).thenReturn(List.of());
+        PolicyDialogModel model = validModel();
+        when(view.collectToModel()).thenReturn(model);
 
         Path target = Path.of("out", "security-policy.yaml").toAbsolutePath();
         when(selectionProvider.selectSavePolicyFile(any(), eq("security-policy.yaml")))
@@ -86,14 +82,8 @@ class PolicyDialogViewModelReactiveTest {
         AtomicReference<Path> capturedPath = new AtomicReference<>();
 
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> {
-                    saved.set(true);
-                    capturedModel.set(m);
-                    capturedPath.set(p);
-                },
+                view, selectionProvider, null,
+                (m, p) -> { saved.set(true); capturedModel.set(m); capturedPath.set(p); },
                 p -> false
         );
         vm.initialize();
@@ -111,7 +101,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void saveMissingInputsShowsErrorAndDoesNotInvokeOnSave() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -119,40 +109,28 @@ class PolicyDialogViewModelReactiveTest {
         when(view.saveObservable()).thenReturn(saveSubject);
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
-        // Missing config
-        when(view.getSelectedConfig()).thenReturn(" ");
-        when(view.getRootPackage()).thenReturn("de.example");
-        when(view.getMainClass()).thenReturn("Main");
-        when(view.getTestClassesRaw()).thenReturn("de.example.ExampleTest");
-
-        when(view.getFileSystemRules()).thenReturn(List.of());
-        when(view.getNetworkConnectionRules()).thenReturn(List.of());
-        when(view.getCommandExecutionRules()).thenReturn(List.of());
-        when(view.getThreadCreationRules()).thenReturn(List.of());
-        when(view.getPackageImportRules()).thenReturn(List.of());
-        when(view.getTimeoutRules()).thenReturn(List.of());
+        // collectToModel throws because the model constructor rejects blank config
+        when(view.collectToModel()).thenThrow(
+                new IllegalArgumentException("programmingLanguageConfiguration must not be blank"));
 
         AtomicBoolean saved = new AtomicBoolean(false);
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> saved.set(true),
-                p -> false
+                view, selectionProvider, null, (m, p) -> saved.set(true), p -> false
         );
         vm.initialize();
 
         saveSubject.onNext(new ActionEvent());
 
         assertThat(saved).isFalse();
-        verify(view).setError("Please select a programming language configuration.");
+        // The ViewModel surfaces the constructor's exception message
+        verify(view).setError("Invalid policy configuration. Please review your inputs.");
         verify(view, never()).close();
         verify(selectionProvider, never()).selectSavePolicyFile(any(), anyString());
     }
 
     @Test
     void saveSelectionCanceledDoesNotInvokeOnSaveOrClose() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -160,28 +138,12 @@ class PolicyDialogViewModelReactiveTest {
         when(view.saveObservable()).thenReturn(saveSubject);
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
-        // Valid supervised code inputs
-        when(view.getSelectedConfig()).thenReturn("JAVA_USING_MAVEN_WALA_AND_ASPECTJ");
-        when(view.getRootPackage()).thenReturn("de.example");
-        when(view.getMainClass()).thenReturn("Main");
-        when(view.getTestClassesRaw()).thenReturn("de.example.ExampleTest");
-
-        when(view.getFileSystemRules()).thenReturn(List.of());
-        when(view.getNetworkConnectionRules()).thenReturn(List.of());
-        when(view.getCommandExecutionRules()).thenReturn(List.of());
-        when(view.getThreadCreationRules()).thenReturn(List.of());
-        when(view.getPackageImportRules()).thenReturn(List.of());
-        when(view.getTimeoutRules()).thenReturn(List.of());
-
+        when(view.collectToModel()).thenReturn(validModel());
         when(selectionProvider.selectSavePolicyFile(any(), anyString())).thenReturn(Optional.empty());
 
         AtomicBoolean saved = new AtomicBoolean(false);
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> saved.set(true),
-                p -> false
+                view, selectionProvider, null, (m, p) -> saved.set(true), p -> false
         );
         vm.initialize();
 
@@ -194,7 +156,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void saveUnsafeLocationShowsErrorAndDoesNotInvokeOnSave() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -202,18 +164,7 @@ class PolicyDialogViewModelReactiveTest {
         when(view.saveObservable()).thenReturn(saveSubject);
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
-        // Valid supervised code inputs
-        when(view.getSelectedConfig()).thenReturn("JAVA_USING_MAVEN_WALA_AND_ASPECTJ");
-        when(view.getRootPackage()).thenReturn("de.example");
-        when(view.getMainClass()).thenReturn("Main");
-        when(view.getTestClassesRaw()).thenReturn("de.example.ExampleTest");
-
-        when(view.getFileSystemRules()).thenReturn(List.of());
-        when(view.getNetworkConnectionRules()).thenReturn(List.of());
-        when(view.getCommandExecutionRules()).thenReturn(List.of());
-        when(view.getThreadCreationRules()).thenReturn(List.of());
-        when(view.getPackageImportRules()).thenReturn(List.of());
-        when(view.getTimeoutRules()).thenReturn(List.of());
+        when(view.collectToModel()).thenReturn(validModel());
 
         Path target = Path.of("project", "security-policy.yaml").toAbsolutePath();
         when(selectionProvider.selectSavePolicyFile(any(), anyString()))
@@ -221,11 +172,7 @@ class PolicyDialogViewModelReactiveTest {
 
         AtomicBoolean saved = new AtomicBoolean(false);
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> saved.set(true),
-                p -> true
+                view, selectionProvider, null, (m, p) -> saved.set(true), p -> true
         );
         vm.initialize();
 
@@ -238,7 +185,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void cancelClosesDialog() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -247,12 +194,7 @@ class PolicyDialogViewModelReactiveTest {
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> {
-                },
-                p -> false
+                view, selectionProvider, null, (m, p) -> {}, p -> false
         );
         vm.initialize();
 
@@ -263,7 +205,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void showCallsViewShowAndDisposesSubscriptions() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -272,12 +214,7 @@ class PolicyDialogViewModelReactiveTest {
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> {
-                },
-                p -> false
+                view, selectionProvider, null, (m, p) -> {}, p -> false
         );
 
         vm.show();
@@ -293,7 +230,7 @@ class PolicyDialogViewModelReactiveTest {
 
     @Test
     void buildModelValidationErrorsSurfaceAsViewError() {
-        PolicyDialogView view = mock(PolicyDialogView.class);
+        PolicyDialogViewContract view = mock(PolicyDialogViewContract.class);
         SelectionProvider selectionProvider = mock(SelectionProvider.class);
 
         PublishSubject<ActionEvent> saveSubject = PublishSubject.create();
@@ -301,27 +238,19 @@ class PolicyDialogViewModelReactiveTest {
         when(view.saveObservable()).thenReturn(saveSubject);
         when(view.cancelObservable()).thenReturn(cancelSubject);
 
-        // Valid supervised code inputs
-        when(view.getSelectedConfig()).thenReturn("JAVA_USING_MAVEN_WALA_AND_ASPECTJ");
-        when(view.getRootPackage()).thenReturn("de.example");
-        when(view.getMainClass()).thenReturn("Main");
-        when(view.getTestClassesRaw()).thenReturn("de.example.ExampleTest");
-
-        // Keep rule objects valid, but trigger view-model validation failures.
-        when(view.getFileSystemRules()).thenReturn(List.of());
-        when(view.getNetworkConnectionRules()).thenReturn(List.of(new NetworkConnectionRule("example.com", 443, true, true, true)));
-        when(view.getCommandExecutionRules()).thenReturn(List.of());
-        when(view.getThreadCreationRules()).thenReturn(List.of());
-        when(view.getPackageImportRules()).thenReturn(List.of());
-        when(view.getTimeoutRules()).thenReturn(List.of(new TimeoutRule(1), new TimeoutRule(2)));
+        // Model with two timeouts — valid for the constructor but caught by the validator
+        when(view.collectToModel()).thenReturn(new PolicyDialogModel(
+                "JAVA_USING_MAVEN_WALA_AND_ASPECTJ", "de.example", "Main",
+                List.of("de.example.ExampleTest"),
+                List.of(),
+                List.of(new NetworkConnectionRule("example.com", 443, true, true, true)),
+                List.of(), List.of(), List.of(),
+                List.of(new TimeoutRule(1), new TimeoutRule(2))
+        ));
 
         AtomicBoolean saved = new AtomicBoolean(false);
         PolicyDialogViewModel vm = new PolicyDialogViewModel(
-                view,
-                selectionProvider,
-                null,
-                (m, p) -> saved.set(true),
-                p -> false
+                view, selectionProvider, null, (m, p) -> saved.set(true), p -> false
         );
         vm.initialize();
 

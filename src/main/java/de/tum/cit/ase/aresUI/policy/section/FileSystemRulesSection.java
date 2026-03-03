@@ -1,8 +1,8 @@
 package de.tum.cit.ase.aresUI.policy.section;
 
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
 import de.tum.cit.ase.aresUI.policy.rules.FileSystemRule;
 import de.tum.cit.ase.aresUI.policy.UiSupport;
-import de.tum.cit.ase.aresUI.policy.row.FsRuleRow;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -35,9 +35,9 @@ public final class FileSystemRulesSection {
 
     private final Stage stage;
 
-    private final Button addButton = new Button("Add rule");
+    private final Button addButton = new Button(PolicyUiConstants.ADD_RULE_LABEL);
     private final VBox container = new VBox(6);
-    private final List<FsRuleRow> rows = new ArrayList<>();
+    private final List<FileSystemRuleRow> rows = new ArrayList<>();
 
     /**
      * Creates the file system rules UI section.
@@ -72,7 +72,7 @@ public final class FileSystemRulesSection {
         if (rules == null) return;
 
         for (FileSystemRule r : rules) {
-            FsRuleRow row = addRowInternal();
+            FileSystemRuleRow row = addRowInternal();
             row.path.setText(r.getPathAndBelow());
             row.read.setSelected(r.isReadAllFiles());
             row.overwrite.setSelected(r.isOverwriteAllFiles());
@@ -115,7 +115,7 @@ public final class FileSystemRulesSection {
      *
      * @return created row
      */
-    private FsRuleRow addRowInternal() {
+    private FileSystemRuleRow addRowInternal() {
         TextField path = new TextField();
         path.setPromptText("e.g. something.txt");
 
@@ -147,7 +147,7 @@ public final class FileSystemRulesSection {
         row.add(delete, 6, 0);
         row.add(remove, 7, 0);
 
-        FsRuleRow rr = new FsRuleRow(path, browse, read, overwrite, create, execute, delete, remove, row);
+        FileSystemRuleRow rr = new FileSystemRuleRow(path, browse, read, overwrite, create, execute, delete, remove, row);
         rows.add(rr);
         container.getChildren().add(row);
 
@@ -167,7 +167,7 @@ public final class FileSystemRulesSection {
      */
     private void onBrowse(ActionEvent e) {
         Object ud = ((Button) e.getSource()).getUserData();
-        if (ud instanceof FsRuleRow rr) {
+        if (ud instanceof FileSystemRuleRow rr) {
             openPathChooser(rr);
         }
     }
@@ -179,7 +179,7 @@ public final class FileSystemRulesSection {
      */
     private void onRemove(ActionEvent e) {
         Object ud = ((Button) e.getSource()).getUserData();
-        if (!(ud instanceof FsRuleRow rr)) return;
+        if (!(ud instanceof FileSystemRuleRow rr)) return;
 
         rows.remove(rr);
         container.getChildren().remove(rr.root);
@@ -191,7 +191,7 @@ public final class FileSystemRulesSection {
      * @param targetRow row to update
      * @throws NullPointerException if {@code targetRow} is {@code null}
      */
-    private void openPathChooser(FsRuleRow targetRow) {
+    private void openPathChooser(FileSystemRuleRow targetRow) {
         Objects.requireNonNull(targetRow, "targetRow");
 
         ContextMenu menu = new ContextMenu();
@@ -215,7 +215,7 @@ public final class FileSystemRulesSection {
      */
     private void onSelectFilesMenuItem(ActionEvent e) {
         Object ud = ((MenuItem) e.getSource()).getUserData();
-        if (!(ud instanceof FsRuleRow targetRow)) return;
+        if (!(ud instanceof FileSystemRuleRow targetRow)) return;
 
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select files");
@@ -236,7 +236,7 @@ public final class FileSystemRulesSection {
      */
     private void onSelectFolderMenuItem(ActionEvent e) {
         Object ud = ((MenuItem) e.getSource()).getUserData();
-        if (!(ud instanceof FsRuleRow targetRow)) return;
+        if (!(ud instanceof FileSystemRuleRow targetRow)) return;
 
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Select folder");
@@ -259,13 +259,13 @@ public final class FileSystemRulesSection {
      * @param selectedPaths selected path strings
      * @param targetRow target row
      */
-    private void applySelectedPaths(List<String> selectedPaths, FsRuleRow targetRow) {
+    private void applySelectedPaths(List<String> selectedPaths, FileSystemRuleRow targetRow) {
         if (selectedPaths == null || selectedPaths.isEmpty()) return;
 
         targetRow.path.setText(selectedPaths.get(0));
 
         for (int i = 1; i < selectedPaths.size(); i++) {
-            FsRuleRow newRow = addRowInternal();
+            FileSystemRuleRow newRow = addRowInternal();
             newRow.path.setText(selectedPaths.get(i));
 
             newRow.read.setSelected(targetRow.read.isSelected());
@@ -314,14 +314,14 @@ public final class FileSystemRulesSection {
         c0.setHgrow(Priority.ALWAYS);
         c0.setMinWidth(240);
 
-        ColumnConstraints cBrowse = new ColumnConstraints(34);
+        ColumnConstraints cBrowse = new ColumnConstraints(PolicyUiConstants.REMOVE_COLUMN_WIDTH);
 
         ColumnConstraints c1 = new ColumnConstraints(70);
         ColumnConstraints c2 = new ColumnConstraints(100);
         ColumnConstraints c3 = new ColumnConstraints(70);
         ColumnConstraints c4 = new ColumnConstraints(80);
         ColumnConstraints c5 = new ColumnConstraints(70);
-        ColumnConstraints c6 = new ColumnConstraints(34);
+        ColumnConstraints c6 = new ColumnConstraints(PolicyUiConstants.REMOVE_COLUMN_WIDTH);
 
         return List.of(c0, cBrowse, c1, c2, c3, c4, c5, c6);
     }

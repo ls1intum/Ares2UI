@@ -27,6 +27,15 @@ class UiSupportBehaviorTest {
     }
 
     @Test
+    void parseLinesHandlesNullBlankAndMultiLine() {
+        assertThat(UiSupport.parseLines(null)).isEmpty();
+        assertThat(UiSupport.parseLines("")).isEmpty();
+        assertThat(UiSupport.parseLines("  \n  ")).isEmpty();
+        assertThat(UiSupport.parseLines("a\nb\n  c  ")).containsExactly("a", "b", "c");
+        assertThat(UiSupport.parseLines("one\r\ntwo")).containsExactly("one", "two");
+    }
+
+    @Test
     void javaFxFactoriesCreateNodes() {
         FxTestSupport.ensureToolkit();
         org.junit.jupiter.api.Assumptions.assumeTrue(FxTestSupport.isToolkitAvailable(), "JavaFX toolkit unavailable");
@@ -35,7 +44,7 @@ class UiSupportBehaviorTest {
             Button b = UiSupport.createRemoveButton();
             Label l = UiSupport.boldLabel("X");
 
-            assertThat(b.getText()).isEqualTo("");
+            assertThat(b.getText()).isEqualTo("\u2715");
             assertThat(l.getStyle()).contains("bold");
             assertThat(UiSupport.headerBottomPadding().getBottom()).isEqualTo(4.0);
         });

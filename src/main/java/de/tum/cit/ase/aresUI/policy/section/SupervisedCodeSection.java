@@ -1,6 +1,7 @@
 package de.tum.cit.ase.aresUI.policy.section;
 
-import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogModel;
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
+import de.tum.cit.ase.aresUI.policy.UiSupport;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -10,10 +11,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * UI section for supervised-code metadata: programming language configuration, root package,
@@ -32,8 +30,8 @@ public final class SupervisedCodeSection {
      * Creates the supervised-code metadata section with default values.
      */
     public SupervisedCodeSection() {
-        grid.setHgap(10);
-        grid.setVgap(10);
+        grid.setHgap(PolicyUiConstants.GRID_HGAP);
+        grid.setVgap(PolicyUiConstants.GRID_HGAP);
 
         int row = 0;
 
@@ -72,9 +70,9 @@ public final class SupervisedCodeSection {
         GridPane.setHgrow(testClassesArea, Priority.ALWAYS);
 
         ColumnConstraints c0 = new ColumnConstraints();
-        c0.setMinWidth(190);
-        c0.setPrefWidth(190);
-        c0.setMaxWidth(190);
+        c0.setMinWidth(PolicyUiConstants.LABEL_COLUMN_WIDTH);
+        c0.setPrefWidth(PolicyUiConstants.LABEL_COLUMN_WIDTH);
+        c0.setMaxWidth(PolicyUiConstants.LABEL_COLUMN_WIDTH);
         c0.setHgrow(Priority.NEVER);
 
         ColumnConstraints c1 = new ColumnConstraints();
@@ -93,18 +91,18 @@ public final class SupervisedCodeSection {
     }
 
     /**
-     * Loads fields from an existing policy model.
-     * Missing lists are treated as empty lists.
+     * Loads fields from the given supervised-code metadata values.
      *
-     * @param model policy model to load
-     * @throws NullPointerException if {@code model} is {@code null}
+     * @param config      programming language configuration identifier
+     * @param rootPackage root package of the supervised code
+     * @param mainClass   main class name
+     * @param testClasses list of test class names (may be {@code null}, treated as empty)
      */
-    public void load(PolicyDialogModel model) {
-        Objects.requireNonNull(model, "model");
-        configComboBox.getSelectionModel().select(model.getProgrammingLanguageConfiguration());
-        rootPackageField.setText(model.getRootPackage());
-        mainClassField.setText(model.getMainClass());
-        List<String> tests = model.getTestClasses() == null ? List.of() : model.getTestClasses();
+    public void load(String config, String rootPackage, String mainClass, List<String> testClasses) {
+        configComboBox.getSelectionModel().select(config);
+        rootPackageField.setText(rootPackage);
+        mainClassField.setText(mainClass);
+        List<String> tests = testClasses == null ? List.of() : testClasses;
         testClassesArea.setText(String.join("\n", tests));
     }
 
@@ -150,11 +148,6 @@ public final class SupervisedCodeSection {
      * @return list of test class names
      */
     public List<String> getTestClasses() {
-        String raw = getTestClassesRaw();
-        if (raw == null) return List.of();
-        return Arrays.stream(raw.split("\\R"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+        return UiSupport.parseLines(getTestClassesRaw());
     }
 }

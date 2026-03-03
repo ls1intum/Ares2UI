@@ -70,7 +70,12 @@ public final class PolicyDialogBinder {
     public void loadFromModel(PolicyDialogModel model) {
         Objects.requireNonNull(model, "model");
 
-        supervisedCode.load(model);
+        supervisedCode.load(
+                model.getProgrammingLanguageConfiguration(),
+                model.getRootPackage(),
+                model.getMainClass(),
+                model.getTestClasses()
+        );
         fileSystem.load(nullToEmpty(model.getFileSystemRules()));
         network.load(nullToEmpty(model.getNetworkConnectionRules()));
         commands.load(nullToEmpty(model.getCommandExecutionRules()));

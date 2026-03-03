@@ -1,8 +1,8 @@
 package de.tum.cit.ase.aresUI.policy.section;
 
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
 import de.tum.cit.ase.aresUI.policy.rules.NetworkConnectionRule;
 import de.tum.cit.ase.aresUI.policy.UiSupport;
-import de.tum.cit.ase.aresUI.policy.row.NetworkRuleRow;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public final class NetworkRulesSection {
 
-    private final Button addButton = new Button("Add rule");
+    private final Button addButton = new Button(PolicyUiConstants.ADD_RULE_LABEL);
     private final VBox container = new VBox(6);
     private final List<NetworkRuleRow> rows = new ArrayList<>();
 
@@ -155,7 +155,7 @@ public final class NetworkRulesSection {
         ColumnConstraints c2 = new ColumnConstraints(120);
         ColumnConstraints c3 = new ColumnConstraints(90);
         ColumnConstraints c4 = new ColumnConstraints(110);
-        ColumnConstraints c5 = new ColumnConstraints(34);
+        ColumnConstraints c5 = new ColumnConstraints(PolicyUiConstants.REMOVE_COLUMN_WIDTH);
 
         return List.of(c0, c1, c2, c3, c4, c5);
     }

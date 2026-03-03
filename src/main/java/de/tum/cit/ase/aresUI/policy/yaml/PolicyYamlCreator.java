@@ -187,7 +187,7 @@ public class PolicyYamlCreator {
         // Spec: not a list. Either [ ] or a single item.
         // If the UI/model ever contains multiple entries, we intentionally take the first one.
         return "    regardingTimeouts:\n"
-                + "      - timeout: " + model.getTimeoutRules().getFirst().getTimeoutSeconds() + "\n";
+                + "      - timeout: " + model.getTimeoutRules().get(0).getTimeoutSeconds() + "\n";
     }
 
     /**

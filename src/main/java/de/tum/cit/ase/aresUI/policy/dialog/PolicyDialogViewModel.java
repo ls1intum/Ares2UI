@@ -1,24 +1,16 @@
 package de.tum.cit.ase.aresUI.policy.dialog;
 
 import de.tum.cit.ase.aresUI.SelectionProvider;
-import de.tum.cit.ase.aresUI.policy.rules.CommandExecutionRule;
-import de.tum.cit.ase.aresUI.policy.rules.FileSystemRule;
-import de.tum.cit.ase.aresUI.policy.rules.NetworkConnectionRule;
-import de.tum.cit.ase.aresUI.policy.rules.PackageImportRule;
-import de.tum.cit.ase.aresUI.policy.rules.ThreadCreationRule;
-import de.tum.cit.ase.aresUI.policy.rules.TimeoutRule;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import javafx.event.ActionEvent;
 import javafx.stage.Window;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Coordinates the policy dialog UI workflow by translating view interactions into a validated {@link PolicyDialogModel}
@@ -26,7 +18,7 @@ import java.util.stream.Collectors;
  */
 public class PolicyDialogViewModel {
 
-    private final PolicyDialogView view;
+    private final PolicyDialogViewContract view;
     private final SelectionProvider selectionProvider;
     private final Window owner;
     private final BiConsumer<PolicyDialogModel, Path> onSave;
@@ -37,14 +29,14 @@ public class PolicyDialogViewModel {
     /**
      * Creates a view-model for the policy dialog.
      *
-     * @param view dialog view facade
+     * @param view dialog view contract
      * @param selectionProvider provider used to select the output file
      * @param owner owner window for file chooser dialogs; may be {@code null}
      * @param onSave callback invoked after successful validation and file selection
      * @param isUnsafeLocation predicate used to reject unsafe output locations
      * @throws NullPointerException if {@code view}, {@code selectionProvider}, {@code onSave}, or {@code isUnsafeLocation} is {@code null}
      */
-    public PolicyDialogViewModel(PolicyDialogView view,
+    public PolicyDialogViewModel(PolicyDialogViewContract view,
                                  SelectionProvider selectionProvider,
                                  Window owner,
                                  BiConsumer<PolicyDialogModel, Path> onSave,
@@ -86,6 +78,9 @@ public class PolicyDialogViewModel {
 
         try {
             PolicyDialogModel model = buildModelFromView();
+            if (model == null) {
+                return; // validation failed; error already shown
+            }
 
             Optional<java.io.File> optionalFile = selectionProvider.selectSavePolicyFile(owner, "security-policy.yaml");
             if (optionalFile.isEmpty()) {
@@ -107,79 +102,32 @@ public class PolicyDialogViewModel {
     }
 
     /**
-     * Builds a {@link PolicyDialogModel} from the current view state.
+     * Collects the current view state into a {@link PolicyDialogModel} and validates it.
      *
-     * @return the constructed policy model
-     * @throws IllegalArgumentException if any required field is missing or any rule list contains invalid data
+     * <p>The model is collected exactly once. Constructor-level validation errors from the model
+     * (e.g. blank fields) are translated into a generic user-friendly message. Post-construction checks
+     * (e.g. at-most-one timeout) are performed by {@link PolicyModelValidator}.
+     *
+     * @return the validated policy model, or {@code null} if validation failed (error already shown)
      */
     private PolicyDialogModel buildModelFromView() {
-        String config = trimOrNull(view.getSelectedConfig());
-        String rootPackage = trimOrNull(view.getRootPackage());
-        String mainClass = trimOrNull(view.getMainClass());
+        // Collect the model once; the constructor may throw for blank/missing fields
+        PolicyDialogModel model;
+        try {
+            model = view.collectToModel();
+        } catch (IllegalArgumentException ex) {
+            view.setError("Invalid policy configuration. Please review your inputs.");
+            return null;
+        }
 
-        List<FileSystemRule> fsRules = view.getFileSystemRules();
-        validateFileSystemRules(fsRules);
+        // Run additional UI-level validation on the constructed model
+        List<String> errors = PolicyModelValidator.validate(model);
+        if (!errors.isEmpty()) {
+            view.setError(errors.get(0));
+            return null;
+        }
 
-        List<NetworkConnectionRule> networkRules = view.getNetworkConnectionRules();
-        validateNetworkRules(networkRules);
-
-        List<CommandExecutionRule> commandRules = view.getCommandExecutionRules();
-        validateCommandRules(commandRules);
-
-        List<ThreadCreationRule> threadRules = view.getThreadCreationRules();
-        validateThreadRules(threadRules);
-
-        List<PackageImportRule> packageRules = view.getPackageImportRules();
-        validatePackageRules(packageRules);
-
-        List<TimeoutRule> timeoutRules = view.getTimeoutRules();
-        validateTimeoutRules(timeoutRules);
-
-        List<String> testClasses = parseTestClasses(view.getTestClassesRaw());
-
-        if (config == null) throw new IllegalArgumentException("Please select a programming language configuration.");
-        if (rootPackage == null) throw new IllegalArgumentException("Root package must not be empty.");
-        if (mainClass == null) throw new IllegalArgumentException("Main class must not be empty.");
-        if (testClasses.isEmpty()) throw new IllegalArgumentException("Please provide at least one test class.");
-
-        return new PolicyDialogModel(
-                config,
-                rootPackage,
-                mainClass,
-                testClasses,
-                fsRules,
-                networkRules,
-                commandRules,
-                threadRules,
-                packageRules,
-                timeoutRules
-        );
-    }
-
-    /**
-     * Parses a multi-line text field into a list of non-empty class names.
-     *
-     * @param raw raw text (may be {@code null})
-     * @return list of trimmed, non-empty lines
-     */
-    private List<String> parseTestClasses(String raw) {
-        if (raw == null) return List.of();
-        return Arrays.stream(raw.split("\\R"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Trims the given string and converts blank values to {@code null}.
-     *
-     * @param s input value
-     * @return trimmed value or {@code null} when blank
-     */
-    private String trimOrNull(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
+        return model;
     }
 
     /**
@@ -196,95 +144,5 @@ public class PolicyDialogViewModel {
      */
     private void handleError(Throwable t) {
         view.setError("Unexpected error: " + (t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
-    }
-
-    /**
-     * Validates file system rules and rejects empty paths.
-     *
-     * @param rules file system rule list
-     * @throws IllegalArgumentException if an entry has an empty path
-     */
-    private void validateFileSystemRules(List<FileSystemRule> rules) {
-        if (rules.isEmpty()) return;
-
-        boolean hasEmptyRule = rules.stream()
-                .anyMatch(r -> r.getPathAndBelow() == null || r.getPathAndBelow().trim().isEmpty());
-        if (hasEmptyRule) {
-            throw new IllegalArgumentException("Please fill the file system path or delete the empty rule.");
-        }
-    }
-
-    /**
-     * Validates network rules by requiring a host and a valid port.
-     *
-     * @param rules network rule list
-     * @throws IllegalArgumentException if an entry has an empty host or an invalid port
-     */
-    private void validateNetworkRules(List<NetworkConnectionRule> rules) {
-        boolean hasEmptyHost = rules.stream().anyMatch(r -> r.getHost() == null || r.getHost().trim().isEmpty());
-        if (hasEmptyHost) {
-            throw new IllegalArgumentException("Please fill the network host or delete the empty rule.");
-        }
-        boolean invalidPort = rules.stream().anyMatch(r -> r.getPort() < 1 || r.getPort() > 65535);
-        if (invalidPort) {
-            throw new IllegalArgumentException("Network port must be between 1 and 65535.");
-        }
-    }
-
-    /**
-     * Validates command rules by requiring a non-empty command.
-     *
-     * @param rules command rule list
-     * @throws IllegalArgumentException if an entry has an empty command
-     */
-    private void validateCommandRules(List<CommandExecutionRule> rules) {
-        boolean hasEmptyCommand = rules.stream().anyMatch(r -> r.getCommand() == null || r.getCommand().trim().isEmpty());
-        if (hasEmptyCommand) {
-            throw new IllegalArgumentException("Please fill the command to execute or delete the empty rule.");
-        }
-    }
-
-    /**
-     * Validates thread rules by requiring a non-negative thread count and a class name.
-     *
-     * @param rules thread rule list
-     * @throws IllegalArgumentException if an entry is invalid
-     */
-    private void validateThreadRules(List<ThreadCreationRule> rules) {
-        boolean invalid = rules.stream().anyMatch(r -> r.getNumberOfThreads() < 0 || r.getThreadClass() == null || r.getThreadClass().trim().isEmpty());
-        if (invalid) {
-            throw new IllegalArgumentException("Thread rules need a non-negative thread count and a class name.");
-        }
-    }
-
-    /**
-     * Validates package rules by requiring a non-empty package name.
-     *
-     * @param rules package rule list
-     * @throws IllegalArgumentException if an entry has an empty package name
-     */
-    private void validatePackageRules(List<PackageImportRule> rules) {
-        boolean invalid = rules.stream().anyMatch(r -> r.getPackageName() == null || r.getPackageName().trim().isEmpty());
-        if (invalid) {
-            throw new IllegalArgumentException("Please fill the package name or delete the empty rule.");
-        }
-    }
-
-    /**
-     * Validates timeout rules.
-     *
-     * <p>Rules must contain only positive values and at most one entry.
-     *
-     * @param rules timeout rule list
-     * @throws IllegalArgumentException if an entry is non-positive or more than one entry exists
-     */
-    private void validateTimeoutRules(List<TimeoutRule> rules) {
-        boolean invalid = rules.stream().anyMatch(r -> r.getTimeoutSeconds() <= 0);
-        if (invalid) {
-            throw new IllegalArgumentException("Timeout must be a positive number of seconds.");
-        }
-        if (rules.size() > 1) {
-            throw new IllegalArgumentException("Please provide only one timeout entry (or remove all of them).");
-        }
     }
 }

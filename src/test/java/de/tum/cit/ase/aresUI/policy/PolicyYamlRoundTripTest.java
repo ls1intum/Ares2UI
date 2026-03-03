@@ -52,7 +52,7 @@ class PolicyYamlRoundTripTest {
         assertThat(parsed.getPackageImportRules()).hasSize(1);
         assertThat(parsed.getTimeoutRules()).hasSize(1);
 
-        assertThat(parsed.getTimeoutRules().getFirst().getTimeoutSeconds()).isEqualTo(7);
+        assertThat(parsed.getTimeoutRules().get(0).getTimeoutSeconds()).isEqualTo(7);
     }
 
     @Test

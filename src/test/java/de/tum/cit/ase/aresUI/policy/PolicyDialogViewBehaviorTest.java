@@ -1,8 +1,8 @@
 package de.tum.cit.ase.aresUI.policy;
 
 import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogModel;
+import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogViewImpl;
 import de.tum.cit.ase.aresUI.testing.FxTestSupport;
-import de.tum.cit.ase.aresUI.policy.dialog.PolicyDialogView;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class PolicyDialogViewBehaviorTest {
         org.junit.jupiter.api.Assumptions.assumeTrue(FxTestSupport.isToolkitAvailable(), "JavaFX toolkit unavailable");
 
         FxTestSupport.runOnFx(() -> {
-            PolicyDialogView view = new PolicyDialogView(new Stage());
+            PolicyDialogViewImpl view = new PolicyDialogViewImpl(new Stage());
 
             PolicyDialogModel model = new PolicyDialogModel(
                     "JAVA_USING_MAVEN_WALA_AND_ASPECTJ",

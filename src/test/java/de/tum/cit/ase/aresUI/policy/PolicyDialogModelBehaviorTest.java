@@ -36,23 +36,23 @@ class PolicyDialogModelBehaviorTest {
         assertThat(model.getMainClass()).isEqualTo("Main");
 
         assertThat(model.getFileSystemRules()).hasSize(1);
-        assertThat(model.getFileSystemRules().getFirst().getPathAndBelow()).isEqualTo("/tmp");
+        assertThat(model.getFileSystemRules().get(0).getPathAndBelow()).isEqualTo("/tmp");
 
         assertThat(model.getNetworkConnectionRules()).hasSize(1);
-        assertThat(model.getNetworkConnectionRules().getFirst().getHost()).isEqualTo("example.com");
+        assertThat(model.getNetworkConnectionRules().get(0).getHost()).isEqualTo("example.com");
 
         assertThat(model.getCommandExecutionRules()).hasSize(1);
-        assertThat(model.getCommandExecutionRules().getFirst().getCommand()).isEqualTo("echo");
-        assertThat(model.getCommandExecutionRules().getFirst().getArguments()).containsExactly("a", "b");
+        assertThat(model.getCommandExecutionRules().get(0).getCommand()).isEqualTo("echo");
+        assertThat(model.getCommandExecutionRules().get(0).getArguments()).containsExactly("a", "b");
 
         assertThat(model.getThreadCreationRules()).hasSize(1);
-        assertThat(model.getThreadCreationRules().getFirst().getThreadClass()).isEqualTo("java.lang.Thread");
+        assertThat(model.getThreadCreationRules().get(0).getThreadClass()).isEqualTo("java.lang.Thread");
 
         assertThat(model.getPackageImportRules()).hasSize(1);
-        assertThat(model.getPackageImportRules().getFirst().getPackageName()).isEqualTo("java.time");
+        assertThat(model.getPackageImportRules().get(0).getPackageName()).isEqualTo("java.time");
 
         assertThat(model.getTimeoutRules()).hasSize(1);
-        assertThat(model.getTimeoutRules().getFirst().getTimeoutSeconds()).isEqualTo(5);
+        assertThat(model.getTimeoutRules().get(0).getTimeoutSeconds()).isEqualTo(5);
     }
 
     @Test

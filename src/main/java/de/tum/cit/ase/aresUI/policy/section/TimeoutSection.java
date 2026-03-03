@@ -1,8 +1,8 @@
 package de.tum.cit.ase.aresUI.policy.section;
 
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
 import de.tum.cit.ase.aresUI.policy.rules.TimeoutRule;
 import de.tum.cit.ase.aresUI.policy.UiSupport;
-import de.tum.cit.ase.aresUI.policy.row.TimeoutRuleRow;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -24,7 +24,7 @@ import java.util.List;
  */
 public final class TimeoutSection {
 
-    private final Button addTimeoutRuleButton = new Button("Add rule");
+    private final Button addTimeoutRuleButton = new Button(PolicyUiConstants.ADD_RULE_LABEL);
     private final VBox container = new VBox(6);
     private final List<TimeoutRuleRow> rows = new ArrayList<>();
 
@@ -63,7 +63,7 @@ public final class TimeoutSection {
             return;
         }
 
-        TimeoutRule r = rules.getFirst();
+        TimeoutRule r = rules.get(0);
         TimeoutRuleRow row = addRowInternal();
         row.seconds.setText(String.valueOf(r.getTimeoutSeconds()));
         syncAddButtonState();
@@ -112,7 +112,7 @@ public final class TimeoutSection {
      */
     private static List<ColumnConstraints> createColumns() {
         ColumnConstraints c0 = new ColumnConstraints(200);
-        ColumnConstraints c1 = new ColumnConstraints(34);
+        ColumnConstraints c1 = new ColumnConstraints(PolicyUiConstants.REMOVE_COLUMN_WIDTH);
         c0.setHgrow(Priority.NEVER);
         return List.of(c0, c1);
     }

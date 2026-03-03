@@ -1,4 +1,4 @@
-package de.tum.cit.ase.aresUI.policy.row;
+package de.tum.cit.ase.aresUI.policy.section;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -8,19 +8,19 @@ import javafx.scene.layout.GridPane;
 /**
  * Row editor for a single file system interaction rule.
  */
-public final class FsRuleRow {
-    public final TextField path;
-    public final Button browse;
-    public final CheckBox read;
-    public final CheckBox overwrite;
-    public final CheckBox create;
-    public final CheckBox execute;
-    public final CheckBox delete;
-    public final Button remove;
-    public final GridPane root;
+final class FileSystemRuleRow {
+    final TextField path;
+    final Button browse;
+    final CheckBox read;
+    final CheckBox overwrite;
+    final CheckBox create;
+    final CheckBox execute;
+    final CheckBox delete;
+    final Button remove;
+    final GridPane root;
 
     /**
-     * Creates a row view-model containing the controls for a file system rule.
+     * Creates a row containing the controls for a file system rule.
      *
      * @param path path field
      * @param browse browse button
@@ -32,15 +32,15 @@ public final class FsRuleRow {
      * @param remove remove button
      * @param root root grid of the row
      */
-    public FsRuleRow(TextField path,
-                     Button browse,
-                     CheckBox read,
-                     CheckBox overwrite,
-                     CheckBox create,
-                     CheckBox execute,
-                     CheckBox delete,
-                     Button remove,
-                     GridPane root) {
+    FileSystemRuleRow(TextField path,
+                      Button browse,
+                      CheckBox read,
+                      CheckBox overwrite,
+                      CheckBox create,
+                      CheckBox execute,
+                      CheckBox delete,
+                      Button remove,
+                      GridPane root) {
         this.path = path;
         this.browse = browse;
         this.read = read;

@@ -1,4 +1,4 @@
-package de.tum.cit.ase.aresUI.policy.row;
+package de.tum.cit.ase.aresUI.policy.section;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -8,17 +8,17 @@ import javafx.scene.layout.GridPane;
 /**
  * Row editor for a single network connection rule.
  */
-public final class NetworkRuleRow {
-    public final TextField host;
-    public final TextField port;
-    public final CheckBox open;
-    public final CheckBox send;
-    public final CheckBox receive;
-    public final Button remove;
-    public final GridPane root;
+final class NetworkRuleRow {
+    final TextField host;
+    final TextField port;
+    final CheckBox open;
+    final CheckBox send;
+    final CheckBox receive;
+    final Button remove;
+    final GridPane root;
 
     /**
-     * Creates a row view-model containing the controls for a network rule.
+     * Creates a row containing the controls for a network rule.
      *
      * @param host host field
      * @param port port field
@@ -28,7 +28,7 @@ public final class NetworkRuleRow {
      * @param remove remove button
      * @param root root grid of the row
      */
-    public NetworkRuleRow(TextField host, TextField port, CheckBox open, CheckBox send, CheckBox receive, Button remove, GridPane root) {
+    NetworkRuleRow(TextField host, TextField port, CheckBox open, CheckBox send, CheckBox receive, Button remove, GridPane root) {
         this.host = host;
         this.port = port;
         this.open = open;

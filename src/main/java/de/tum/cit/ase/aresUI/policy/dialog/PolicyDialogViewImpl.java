@@ -1,5 +1,6 @@
 package de.tum.cit.ase.aresUI.policy.dialog;
 
+import de.tum.cit.ase.aresUI.policy.PolicyUiConstants;
 import de.tum.cit.ase.aresUI.policy.section.CommandRulesSection;
 import de.tum.cit.ase.aresUI.policy.section.FileSystemRulesSection;
 import de.tum.cit.ase.aresUI.policy.section.NetworkRulesSection;
@@ -21,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -34,12 +36,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Policy editor dialog view.
+ * Concrete JavaFX implementation of {@link PolicyDialogViewContract}.
  *
- * <p>This class is intentionally kept small and acts as a façade: it creates the stage/scene and delegates
- * the UI content and model mapping to section components and {@link PolicyDialogBinder}.
+ * <p>This class creates the stage/scene and delegates the UI content and model mapping to section
+ * components and {@link PolicyDialogBinder}.
  */
-public class PolicyDialogView {
+public class PolicyDialogViewImpl implements PolicyDialogViewContract {
 
     private final Stage stage;
 
@@ -63,19 +65,19 @@ public class PolicyDialogView {
      * @param owner the owner window for the dialog
      * @throws NullPointerException if {@code owner} is {@code null}
      */
-    public PolicyDialogView(Window owner) {
+    public PolicyDialogViewImpl(Window owner) {
         Objects.requireNonNull(owner, "owner");
 
         this.stage = new Stage();
         this.stage.initOwner(owner);
         this.stage.initModality(Modality.WINDOW_MODAL);
-        this.stage.setTitle("Create Security Policy");
+        this.stage.setTitle(PolicyUiConstants.DIALOG_TITLE);
 
-        this.saveButton = new Button("Save");
-        this.cancelButton = new Button("Cancel");
+        this.saveButton = new Button(PolicyUiConstants.SAVE_LABEL);
+        this.cancelButton = new Button(PolicyUiConstants.CANCEL_LABEL);
 
         this.errorLabel = new Label();
-        errorLabel.setStyle("-fx-text-fill: #b00020;");
+        errorLabel.setStyle(PolicyUiConstants.STYLE_ERROR_TEXT);
         errorLabel.setWrapText(true);
 
         // Sections
@@ -100,41 +102,41 @@ public class PolicyDialogView {
         BorderPane outerRoot = new BorderPane();
 
         GridPane form = new GridPane();
-        form.setPadding(new Insets(12));
-        form.setHgap(10);
-        form.setVgap(10);
+        form.setPadding(new Insets(PolicyUiConstants.DIALOG_PADDING));
+        form.setHgap(PolicyUiConstants.GRID_HGAP);
+        form.setVgap(PolicyUiConstants.GRID_HGAP);
 
         int row = 0;
         form.add(supervisedCodeSection.getNode(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("File system interactions:"), 0, row);
+        form.add(new Label("File system interactions:"), 0, row);
         form.add(fileSystemRulesSection.getNode(), 1, row++);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("Network connections:"), 0, row);
+        form.add(new Label("Network connections:"), 0, row);
         form.add(networkRulesSection.getNode(), 1, row++);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("Command executions:"), 0, row);
+        form.add(new Label("Command executions:"), 0, row);
         form.add(commandRulesSection.getNode(), 1, row++);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("Thread creations:"), 0, row);
+        form.add(new Label("Thread creations:"), 0, row);
         form.add(threadRulesSection.getNode(), 1, row++);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("Package imports:"), 0, row);
+        form.add(new Label("Package imports:"), 0, row);
         form.add(packageRulesSection.getNode(), 1, row++);
 
-        form.add(new javafx.scene.control.Separator(), 0, row++, 2, 1);
+        form.add(new Separator(), 0, row++, 2, 1);
 
-        form.add(new javafx.scene.control.Label("Timeouts:"), 0, row);
+        form.add(new Label("Timeouts:"), 0, row);
         form.add(timeoutSection.getNode(), 1, row++);
 
         form.add(errorLabel, 0, row, 2, 1);
@@ -146,8 +148,8 @@ public class PolicyDialogView {
         outerScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         outerRoot.setCenter(outerScroll);
 
-        HBox bottomButtons = new HBox(10, saveButton, cancelButton);
-        bottomButtons.setPadding(new Insets(0, 12, 12, 12));
+        HBox bottomButtons = new HBox(PolicyUiConstants.GRID_HGAP, saveButton, cancelButton);
+        bottomButtons.setPadding(new Insets(0, PolicyUiConstants.DIALOG_PADDING, PolicyUiConstants.DIALOG_PADDING, PolicyUiConstants.DIALOG_PADDING));
         outerRoot.setBottom(bottomButtons);
 
         Screen screen = Screen.getPrimary();
@@ -180,6 +182,7 @@ public class PolicyDialogView {
      *
      * @return observable based on the Save button
      */
+    @SuppressWarnings("UnusedDeclaration") // Called through the dialog view contract by presenter/wiring code.
     public Observable<ActionEvent> saveObservable() {
         return JavaFxObservable.actionEventsOf(saveButton);
     }
@@ -189,6 +192,7 @@ public class PolicyDialogView {
      *
      * @return observable based on the Cancel button
      */
+    @SuppressWarnings("UnusedDeclaration") // Called through the dialog view contract by presenter/wiring code.
     public Observable<ActionEvent> cancelObservable() {
         return JavaFxObservable.actionEventsOf(cancelButton);
     }
@@ -214,6 +218,7 @@ public class PolicyDialogView {
      *
      * @return selected configuration value
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public String getSelectedConfig() {
         return supervisedCodeSection.getSelectedConfig();
     }
@@ -223,6 +228,7 @@ public class PolicyDialogView {
      *
      * @return root package string
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public String getRootPackage() {
         return supervisedCodeSection.getRootPackage();
     }
@@ -232,6 +238,7 @@ public class PolicyDialogView {
      *
      * @return main class string
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public String getMainClass() {
         return supervisedCodeSection.getMainClass();
     }
@@ -241,6 +248,7 @@ public class PolicyDialogView {
      *
      * @return raw test class text
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public String getTestClassesRaw() {
         return supervisedCodeSection.getTestClassesRaw();
     }
@@ -250,6 +258,7 @@ public class PolicyDialogView {
      *
      * @return list of file system rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<FileSystemRule> getFileSystemRules() {
         return fileSystemRulesSection.collect();
     }
@@ -259,6 +268,7 @@ public class PolicyDialogView {
      *
      * @return list of network connection rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<NetworkConnectionRule> getNetworkConnectionRules() {
         return networkRulesSection.collect();
     }
@@ -268,6 +278,7 @@ public class PolicyDialogView {
      *
      * @return list of command execution rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<CommandExecutionRule> getCommandExecutionRules() {
         return commandRulesSection.collect();
     }
@@ -277,6 +288,7 @@ public class PolicyDialogView {
      *
      * @return list of thread creation rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<ThreadCreationRule> getThreadCreationRules() {
         return threadRulesSection.collect();
     }
@@ -286,6 +298,7 @@ public class PolicyDialogView {
      *
      * @return list of package import rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<PackageImportRule> getPackageImportRules() {
         return packageRulesSection.collect();
     }
@@ -295,6 +308,7 @@ public class PolicyDialogView {
      *
      * @return list of timeout rules
      */
+    @SuppressWarnings("UnusedDeclaration") // Accessed via contract-level model collection/binding.
     public List<TimeoutRule> getTimeoutRules() {
         return timeoutSection.collect();
     }

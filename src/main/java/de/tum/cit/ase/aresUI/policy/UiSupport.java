@@ -6,7 +6,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Small UI helper utilities shared by policy editor components.
@@ -26,9 +28,9 @@ public final class UiSupport {
     public static Button createRemoveButton() {
         Button remove = new Button("✕");
         remove.setFocusTraversable(false);
-        remove.setMinWidth(28);
-        remove.setPrefWidth(28);
-        remove.setMaxWidth(28);
+        remove.setMinWidth(PolicyUiConstants.REMOVE_BUTTON_WIDTH);
+        remove.setPrefWidth(PolicyUiConstants.REMOVE_BUTTON_WIDTH);
+        remove.setMaxWidth(PolicyUiConstants.REMOVE_BUTTON_WIDTH);
         remove.setTooltip(new Tooltip("Remove rule"));
         return remove;
     }
@@ -41,7 +43,7 @@ public final class UiSupport {
      */
     public static Label boldLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-weight: bold;");
+        l.setStyle(PolicyUiConstants.STYLE_BOLD);
         return l;
     }
 
@@ -51,7 +53,7 @@ public final class UiSupport {
      * @return padding insets
      */
     public static Insets headerBottomPadding() {
-        return new Insets(0, 0, 4, 0);
+        return new Insets(0, 0, PolicyUiConstants.HEADER_BOTTOM_PADDING, 0);
     }
 
     /**
@@ -107,5 +109,19 @@ public final class UiSupport {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    /**
+     * Splits a raw multi-line string into a list of non-empty, trimmed lines.
+     *
+     * @param raw raw text (may be {@code null})
+     * @return list of trimmed, non-empty lines; empty list when {@code raw} is {@code null} or blank
+     */
+    public static List<String> parseLines(String raw) {
+        if (raw == null) return List.of();
+        return Arrays.stream(raw.split("\\R"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }
